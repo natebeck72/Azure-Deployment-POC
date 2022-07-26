@@ -303,7 +303,7 @@
                         "publisher": "paloaltonetworks",
                         "offer": "panorama",
                         "sku": "byol",
-                        "version": "10.1.3"
+                        "version": "10.1.6"
                     }
                 },
                 "osProfile": {
