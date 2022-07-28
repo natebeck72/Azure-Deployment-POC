@@ -2,10 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "location": {
-			"defaultValue": "[resourceGroup().location]",
-			"type": "string"
-		},
         "virtualMachines_firewall_name": {
             "defaultValue": "CHANGEMEpanfw",
             "type": "String"
@@ -51,7 +47,7 @@
 			"type": "string"
 		},
         "subnet2Prefix": {
-        	"defaultValue": "172.20.1.0/24",
+        	"defaultValue": "172.20.1.0/24",        
         	"type": "string"
         },
 		"subnet3Name": {
@@ -93,20 +89,38 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
             "name": "[parameters('networkSecurityGroups_nsg_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "securityRules": [
                     {
-                        "name": "Allow-Outside-From-IP",
+                        "name": "Allow-HTTPS",
                         "properties": {
                             "description": "Rule",
-                            "protocol": "*",
+                            "protocol": "TCP",
                             "sourcePortRange": "*",
-                            "destinationPortRange": "*",
+                            "destinationPortRange": "443",
                             "sourceAddressPrefix": "0.0.0.0/0",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
                             "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Allow-SSH",
+                        "properties": {
+                            "description": "Rule",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "0.0.0.0/0",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
                             "direction": "Inbound",
                             "sourcePortRanges": [],
                             "destinationPortRanges": [],
@@ -124,7 +138,7 @@
                             "sourceAddressPrefix": "[parameters('vnetAddressPrefix')]",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 101,
+                            "priority": 102,
                             "direction": "Inbound",
                             "sourcePortRanges": [],
                             "destinationPortRanges": [],
@@ -157,7 +171,7 @@
             "type": "Microsoft.Network/publicIPAddresses",
             "apiVersion": "2020-05-01",
             "name": "[parameters('publicIPAddresses_firewallIP_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "sku": {
                 "name": "Basic"
             },
@@ -167,7 +181,7 @@
                 "idleTimeoutInMinutes": 4,
                 "dnsSettings": {
                     "domainNameLabel": "[parameters('publicIPAddresses_firewallIP_name')]",
-                    "fqdn": "[concat(parameters('publicIPAddresses_firewallIP_name'), '.', parameters('location'), '.', 'cloudapp.azure.com')]"
+                    "fqdn": "[concat(parameters('publicIPAddresses_firewallIP_name'), '.', resourceGroup().location, '.', 'cloudapp.azure.com')]"
                 },
                 "ipTags": []
             }
@@ -176,7 +190,7 @@
             "type": "Microsoft.Network/publicIPAddresses",
             "apiVersion": "2020-05-01",
             "name": "[parameters('publicIPAddresses_firewalluntrustIP_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "tags": {
                 "RunStatus": "NOSTOP",
                 "StoreStatus": "DND"
@@ -190,7 +204,7 @@
                 "idleTimeoutInMinutes": 4,
                 "dnsSettings": {
                     "domainNameLabel": "[parameters('publicIPAddresses_firewalluntrustIP_name')]",
-                    "fqdn": "[concat(parameters('publicIPAddresses_firewalluntrustIP_name'), parameters('location'), '.', 'cloudapp.azure.com')]"
+                    "fqdn": "[concat(parameters('publicIPAddresses_firewalluntrustIP_name'), resourceGroup().location, '.', 'cloudapp.azure.com')]"
                 },
                 "ipTags": []
             }
@@ -199,7 +213,7 @@
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2019-06-01",
             "name": "[parameters('storageAccounts_diag_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "tags": {
                 "RunStatus": "NOSTOP",
                 "StoreStatus": "DND"
@@ -277,7 +291,7 @@
             "type": "Microsoft.Network/routeTables",
             "apiVersion": "2020-05-01",
             "name": "internal_routetable",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "properties": {
             	"disableBgpRoutePropagation": false,
             	"routes": [
@@ -296,7 +310,7 @@
             "type": "Microsoft.Network/routeTables",
             "apiVersion": "2020-05-01",
             "name": "external_routetable",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "properties": {
             	"disableBgpRoutePropagation": false,
             	"routes": [
@@ -314,7 +328,7 @@
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2020-05-01",
             "name": "[parameters('virtualNetworks_VNET_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "properties": {
 				"addressSpace": {
 					"addressPrefixes": [
@@ -326,7 +340,7 @@
             	{
             		"type": "subnets",
             		"apiVersion": "2020-05-01",
-            		"location": "[parameters('location')]",
+            		"location": "[resourceGroup().location]",
 					"name": "[parameters('subnet1Name')]",
 					"dependsOn": [
 						"[parameters('virtualNetworks_VNET_name')]"
@@ -341,7 +355,7 @@
 				{
             		"type": "subnets",
             		"apiVersion": "2020-05-01",
-            		"location": "[parameters('location')]",
+            		"location": "[resourceGroup().location]",
 					"name": "[parameters('subnet2Name')]",
 					"dependsOn": [
 						"[parameters('virtualNetworks_VNET_name')]",
@@ -360,7 +374,7 @@
 				{
             		"type": "subnets",
             		"apiVersion": "2020-05-01",
-            		"location": "[parameters('location')]",
+            		"location": "[resourceGroup().location]",
 					"name": "[parameters('subnet3Name')]",
 					"dependsOn": [
 						"[parameters('virtualNetworks_VNET_name')]",
@@ -383,7 +397,7 @@
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2020-05-01",
             "name": "[parameters('networkInterfaces_fw_eth0_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_firewallIP_name'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_VNET_name'), parameters('subnet1Name'))]"
@@ -416,7 +430,7 @@
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2020-05-01",
             "name": "[parameters('networkInterfaces_fw_eth1_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_VNET_name'), parameters('subnet2Name'))]"
             ],
@@ -448,7 +462,7 @@
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2020-05-01",
             "name": "[parameters('networkInterfaces_fw_eth2_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_VNET_name'), parameters('subnet3Name'))]"
             ],
@@ -477,7 +491,7 @@
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2020-05-01",
             "name": "[parameters('networkInterfaces_panomgmt_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_VNET_name'), parameters('subnet3Name'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_name'))]"
@@ -514,15 +528,19 @@
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2019-12-01",
             "name": "[parameters('virtualMachines_firewall_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_fw_eth0_name'))]",
                 "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_fw_eth1_name'))]",
                 "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_fw_eth2_name'))]"
             ],
+            "tags": {
+                "RunStatus": "NOSTOP",
+                "StoreStatus": "DND"
+            },
             "plan": {
                 "name": "byol",
-                "product": "vmseries-flex",
+                "product": "vmseries1",
                 "publisher": "paloaltonetworks"
             },
             "properties": {
@@ -570,7 +588,7 @@
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2019-12-01",
             "name": "[parameters('virtualMachines_panorama_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_panomgmt_name'))]",
                 "[resourceId('Microsoft.Storage/StorageAccounts', parameters('storageAccounts_diag_name'))]"
