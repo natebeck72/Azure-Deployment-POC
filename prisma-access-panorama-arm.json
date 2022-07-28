@@ -2,10 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "location": {
-	    "defaultValue": "[resourceGroup().location]",
-	    "type": "string"
-	},
         "virtualMachines_panorama_name": {
             "defaultValue": "CHANGEMEpanorama",
             "type": "String"
@@ -57,20 +53,38 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2020-05-01",
             "name": "[parameters('networkSecurityGroups_nsg_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "securityRules": [
                     {
-                        "name": "Allow-Outside-From-IP",
+                        "name": "Allow-HTTPS",
                         "properties": {
                             "description": "Rule",
-                            "protocol": "*",
+                            "protocol": "TCP",
                             "sourcePortRange": "*",
-                            "destinationPortRange": "*",
+                            "destinationPortRange": "443",
                             "sourceAddressPrefix": "0.0.0.0/0",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
                             "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "Allow-SSH",
+                        "properties": {
+                            "description": "Rule",
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "0.0.0.0/0",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
                             "direction": "Inbound",
                             "sourcePortRanges": [],
                             "destinationPortRanges": [],
@@ -88,7 +102,7 @@
                             "sourceAddressPrefix": "[parameters('vnetAddressPrefix')]",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 101,
+                            "priority": 102,
                             "direction": "Inbound",
                             "sourcePortRanges": [],
                             "destinationPortRanges": [],
@@ -121,7 +135,7 @@
             "type": "Microsoft.Network/publicIPAddresses",
             "apiVersion": "2019-11-01",
             "name": "[parameters('publicIPAddresses_panoramaIP_name')]",
-	    "location": "[parameters('location')]",
+	    "location": "[resourceGroup().location]",
             "tags": {
                 "RunStatus": "NOSTOP",
                 "StoreStatus": "DND"
@@ -144,7 +158,7 @@
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2019-06-01",
             "name": "[parameters('storageAccounts_diag_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "tags": {
                 "RunStatus": "NOSTOP",
                 "StoreStatus": "DND"
@@ -210,7 +224,7 @@
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2020-05-01",
             "name": "[parameters('virtualNetworks_VNET_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "properties": {
 				"addressSpace": {
 					"addressPrefixes": [
@@ -222,7 +236,7 @@
             	{
             		"type": "subnets",
             		"apiVersion": "2020-05-01",
-            		"location": "[parameters('location')]",
+            		"location": "[resourceGroup().location]",
 					"name": "[parameters('subnet1Name')]",
 					"dependsOn": [
 						"[parameters('virtualNetworks_VNET_name')]"
@@ -240,7 +254,7 @@
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2020-05-01",
             "name": "[parameters('networkInterfaces_panomgmt_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_VNET_name'), parameters('subnet1Name'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_name'))]"
@@ -257,7 +271,7 @@
                             "privateIPAllocationMethod": "Dynamic",
                             "publicIPAddress": {
                                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_panoramaIP_name'))]"
-                            },
+                            },                            
                             "subnet": {
                                 "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_VNET_name'), parameters('subnet1Name'))]"
                             },
@@ -280,7 +294,7 @@
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2019-12-01",
             "name": "[parameters('virtualMachines_panorama_name')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_panomgmt_name'))]",
                 "[resourceId('Microsoft.Storage/StorageAccounts', parameters('storageAccounts_diag_name'))]"
